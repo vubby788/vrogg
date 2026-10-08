@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>vro.gg</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  display: block;
+}
+
+</style>
+</head>
+<body>
+<main></main>
+<script src="https://cdn.jsdelivr.net/npm/p5@2.3.4/lib/p5.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5.sound@0.4.1/dist/p5.sound.min.js"></script>
+<script>
+// =====================================================
+// VRO.GG — p5.js EDITION
+// Black + White UI
+// Animated background selector
+// Custom background image
+// Custom cursor image
+// Chromebook friendly
+// =====================================================
+
+let games = [
+  ["FNAF", "vro.gg game.", "🤑", "https://site-94dht3r5.myoxypages.com"],
+  ["FNAF SL", "vro.gg game.", "🤑", "https://site-saygwech.myoxypages.com/"],
+  ["FNAF 2", "vro.gg game.", "🤑", "https://site-k2wejaqy.myoxypages.com"],
+  ["FNAF 3", "vro.gg game.", "🤑", "https://site-bg3uwnub.myoxypages.com"],
+  ["FNAF 4", "vro.gg game.", "🤑", "https://site-c8wu8htf.myoxypages.com"],
+  ["FNAF PS", "vro.gg game.", "🤑", "https://site-admpgm9h.myoxypages.com"]
+];
+
+let backgroundMode = "space";
+
+let bgImage = null;
+let cursorImage = null;
+
+let bgPicker;
+let cursorPicker;
+
+let searchText = "";
+let cursorSize = 32;
+
+let stars = [];
+let particles = [];
+let matrixDrops = [];
+
+let backgroundNames = [
+  "space",
+  "matrix",
+  "stars",
+  "grid",
+  "particles",
+  "waves",
+  "void"
+];
+
+let backgroundIndex = 0;
+
+
+// =====================================================
+// SETUP
+// =====================================================
+
+function setup() {
+
+  createCanvas(windowWidth, windowHeight);
+
+  textFont("Arial");
+
+  noCursor();
+
+  // Upload controls
+  bgPicker = createFileInput(loadBackground);
+  bgPicker.hide();
+
+  cursorPicker = createFileInput(loadCursor);
+  cursorPicker.hide();
+
+  // Stars
+  for (let i = 0; i < 180; i++) {
+
+    stars.push({
+      x: random(width),
+      y: random(height),
+      size: random(1, 3),
+      speed: random(0.1, 0.7),
+      brightness: random(80, 255)
+    });
+
+  }
+
+  // Particles
+  for (let i = 0; i < 100; i++) {
+
+    particles.push({
+      x: random(width),
+      y: random(height),
+      vx: random(-0.5, 0.5),
+      vy: random(-0.5, 0.5),
+      size: random(1, 3)
+    });
+
+  }
+
+  // Matrix
+  for (let i = 0; i < width / 18 + 20; i++) {
+
+    matrixDrops.push({
+      x: i * 18,
+      y: random(-height, 0),
+      speed: random(3, 8),
+      length: floor(random(5, 20))
+    });
+
+  }
+}
+
+
+// =====================================================
+// DRAW
+// =====================================================
+
+function draw() {
+
+  drawBackground();
+
+  drawHeader();
+
+  drawSearch();
+
+  drawGames();
+
+  drawSettings();
+
+  drawCursor();
+}
+
+
+// =====================================================
+// BACKGROUND CONTROLLER
+// =====================================================
+
+function drawBackground() {
+
+  if (bgImage) {
+
+    imageMode(CENTER);
+
+    let scaleAmount = max(
+      width / bgImage.width,
+      height / bgImage.height
+    );
+
+    image(
+      bgImage,
+      width / 2,
+      height / 2,
+      bgImage.width * scaleAmount,
+      bgImage.height * scaleAmount
+    );
+
+    fill(0, 0, 0, 180);
+    noStroke();
+    rect(0, 0, width, height);
+
+    return;
+  }
+
+  if (backgroundMode === "space") {
+    drawSpace();
+  }
+
+  if (backgroundMode === "matrix") {
+    drawMatrix();
+  }
+
+  if (backgroundMode === "stars") {
+    drawStars();
+  }
+
+  if (backgroundMode === "grid") {
+    drawGrid();
+  }
+
+  if (backgroundMode === "particles") {
+    drawParticles();
+  }
+
+  if (backgroundMode === "waves") {
+    drawWaves();
+  }
+
+  if (backgroundMode === "void") {
+    drawVoid();
+  }
+}
+
+
+// =====================================================
+// SPACE
+// =====================================================
+
+function drawSpace() {
+
+  background(2);
+
+  // Nebula-like circles
+  noStroke();
+
+  for (let i = 0; i < 8; i++) {
+
+    fill(255, 255, 255, 3);
+
+    ellipse(
+      width * 0.5,
+      height * 0.5,
+      width * (0.4 + i * 0.18),
+      height * (0.4 + i * 0.18)
+    );
+  }
+
+  // Stars
+  for (let s of stars) {
+
+    fill(
+      s.brightness,
+      s.brightness,
+      s.brightness,
+      s.brightness
+    );
+
+    circle(
+      s.x,
+      s.y,
+      s.size
+    );
+
+    s.y += s.speed;
+
+    if (s.y > height) {
+      s.y = 0;
+      s.x = random(width);
+    }
+  }
+
+  // Shooting stars
+  stroke(255, 255, 255, 80);
+
+  for (let i = 0; i < 4; i++) {
+
+    let x =
+      (frameCount * (2 + i) * 0.5) %
+      (width + 200) - 100;
+
+    let y =
+      (i * 190 + frameCount * 0.15) %
+      height;
+
+    line(
+      x,
+      y,
+      x - 35,
+      y + 20
+    );
+  }
+}
+
+
+// =====================================================
+// MATRIX
+// =====================================================
+
+function drawMatrix() {
+
+  background(0);
+
+  textFont("monospace");
+  textSize(14);
+
+  for (let drop of matrixDrops) {
+
+    for (let i = 0; i < drop.length; i++) {
+
+      let y = drop.y - i * 16;
+
+      if (y > 0 && y < height) {
+
+        let brightness =
+          map(i, 0, drop.length, 255, 40);
+
+        fill(
+          brightness,
+          brightness,
+          brightness,
+          brightness
+        );
+
+        let chars =
+          "01ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        let character =
+          chars.charAt(
+            floor(random(chars.length))
+          );
+
+        text(
+          character,
+          drop.x,
+          y
+        );
+      }
+    }
+
+    drop.y += drop.speed;
+
+    if (drop.y > height + 200) {
+      drop.y = random(-500, 0);
+    }
+  }
+
+  // Dark overlay
+  fill(0, 0, 0, 100);
+  noStroke();
+  rect(0, 0, width, height);
+}
+
+
+// =====================================================
+// STARS
+// =====================================================
+
+function drawStars() {
+
+  background(0);
+
+  noStroke();
+
+  for (let s of stars) {
+
+    fill(
+      255,
+      255,
+      255,
+      s.brightness
+    );
+
+    circle(
+      s.x,
+      s.y,
+      s.size
+    );
+
+    s.y += s.speed * 0.4;
+
+    if (s.y > height) {
+      s.y = 0;
+    }
+  }
+
+  // Moon
+  fill(255, 255, 255, 15);
+  circle(
+    width * 0.8,
+    height * 0.2,
+    220
+  );
+
+  fill(0);
+  circle(
+    width * 0.77,
+    height * 0.17,
+    220
+  );
+}
+
+
+// =====================================================
+// GRID
+// =====================================================
+
+function drawGrid() {
+
+  background(2);
+
+  stroke(255, 255, 255, 18);
+  strokeWeight(1);
+
+  let spacing = 40;
+
+  for (let x = 0; x < width; x += spacing) {
+    line(x, 0, x, height);
+  }
+
+  for (let y = 0; y < height; y += spacing) {
+    line(0, y, width, y);
+  }
+
+  // Moving horizontal glow
+  stroke(255, 255, 255, 40);
+
+  let movingY =
+    (frameCount * 0.7) % height;
+
+  line(
+    0,
+    movingY,
+    width,
+    movingY
+  );
+}
+
+
+// =====================================================
+// PARTICLES
+// =====================================================
+
+function drawParticles() {
+
+  background(1);
+
+  noStroke();
+
+  for (let p of particles) {
+
+    fill(255, 255, 255, 140);
+
+    circle(
+      p.x,
+      p.y,
+      p.size
+    );
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if (p.x < 0 || p.x > width) {
+      p.vx *= -1;
+    }
+
+    if (p.y < 0 || p.y > height) {
+      p.vy *= -1;
+    }
+  }
+
+  // Connections
+  stroke(255, 255, 255, 12);
+
+  for (let i = 0; i < particles.length; i++) {
+
+    for (let j = i + 1; j < particles.length; j++) {
+
+      let d = dist(
+        particles[i].x,
+        particles[i].y,
+        particles[j].x,
+        particles[j].y
+      );
+
+      if (d < 100) {
+
+        line(
+          particles[i].x,
+          particles[i].y,
+          particles[j].x,
+          particles[j].y
+        );
+      }
+    }
+  }
+}
+
+
+// =====================================================
+// WAVES
+// =====================================================
+
+function drawWaves() {
+
+  background(2);
+
+  noFill();
+
+  for (let j = 0; j < 15; j++) {
+
+    stroke(
+      255,
+      255,
+      255,
+      12 + j * 2
+    );
+
+    beginShape();
+
+    for (let x = 0; x <= width; x += 15) {
+
+      let y =
+        height / 2 +
+        sin(
+          x * 0.008 +
+          frameCount * 0.02 +
+          j * 0.25
+        ) * (30 + j * 4);
+
+      vertex(
+        x,
+        y
+      );
+    }
+
+    endShape();
+  }
+}
+
+
+// =====================================================
+// VOID
+// =====================================================
+
+function drawVoid() {
+
+  background(0);
+
+  noStroke();
+
+  let pulse =
+    sin(frameCount * 0.02) * 20;
+
+  for (let i = 20; i > 0; i--) {
+
+    let size =
+      i * 80 + pulse;
+
+    fill(
+      255,
+      255,
+      255,
+      2
+    );
+
+    ellipse(
+      width / 2,
+      height / 2,
+      size,
+      size
+    );
+  }
+
+  fill(255, 255, 255, 8);
+
+  ellipse(
+    width / 2,
+    height / 2,
+    100 + pulse,
+    100 + pulse
+  );
+}
+
+
+// =====================================================
+// HEADER
+// =====================================================
+
+function drawHeader() {
+
+  fill(0, 0, 0, 235);
+
+  stroke(255, 255, 255, 25);
+
+  rect(
+    20,
+    20,
+    width - 40,
+    65,
+    14
+  );
+
+  noStroke();
+
+  fill(255);
+
+  textAlign(LEFT, CENTER);
+
+  textStyle(BOLD);
+  textSize(22);
+
+  text(
+    "vro.gg",
+    40,
+    45
+  );
+
+  fill(150);
+
+  textStyle(NORMAL);
+  textSize(9);
+
+  text(
+    "GAME HUB",
+    41,
+    66
+  );
+
+  // Status
+  fill(15);
+
+  stroke(255, 255, 255, 25);
+
+  rect(
+    width - 125,
+    37,
+    80,
+    30,
+    8
+  );
+
+  noStroke();
+
+  fill(255);
+
+  circle(
+    width - 108,
+    52,
+    7
+  );
+
+  fill(200);
+
+  textSize(9);
+
+  text(
+    "ONLINE",
+    width - 98,
+    52
+  );
+}
+
+
+// =====================================================
+// SEARCH
+// =====================================================
+
+function drawSearch() {
+
+  fill(5, 5, 5, 240);
+
+  stroke(255, 255, 255, 30);
+
+  rect(
+    25,
+    105,
+    min(350, width - 50),
+    42,
+    10
+  );
+
+  noStroke();
+
+  fill(
+    searchText === "" ? 100 : 255
+  );
+
+  textAlign(LEFT, CENTER);
+
+  textSize(12);
+
+  text(
+    searchText === ""
+      ? "Search games..."
+      : searchText,
+    40,
+    126
+  );
+}
+
+
+// =====================================================
+// GAME CARDS
+// =====================================================
+
+function drawGames() {
+
+  let filtered = [];
+
+  for (let game of games) {
+
+    if (
+      searchText === "" ||
+      game[0]
+        .toLowerCase()
+        .includes(
+          searchText.toLowerCase()
+        ) ||
+      game[1]
+        .toLowerCase()
+        .includes(
+          searchText.toLowerCase()
+        )
+    ) {
+
+      filtered.push(game);
+    }
+  }
+
+  let columns = 3;
+
+  if (width < 850) {
+    columns = 2;
+  }
+
+  if (width < 550) {
+    columns = 1;
+  }
+
+  let gap = 15;
+
+  let cardWidth =
+    (width - 50 - gap * (columns - 1)) /
+    columns;
+
+  for (let i = 0; i < filtered.length; i++) {
+
+    let col = i % columns;
+    let row = floor(i / columns);
+
+    let x =
+      25 + col * (cardWidth + gap);
+
+    let y =
+      170 + row * 155;
+
+    drawCard(
+      filtered[i],
+      x,
+      y,
+      cardWidth
+    );
+  }
+}
+
+
+function drawCard(game, x, y, w) {
+
+  fill(5, 5, 5, 245);
+
+  stroke(255, 255, 255, 25);
+
+  rect(
+    x,
+    y,
+    w,
+    140,
+    14
+  );
+
+  // Icon
+  noStroke();
+
+  fill(20);
+
+  rect(
+    x + 15,
+    y + 15,
+    50,
+    50,
+    10
+  );
+
+  textAlign(CENTER, CENTER);
+
+  textSize(22);
+
+  fill(255);
+
+  text(
+    game[2],
+    x + 40,
+    y + 40
+  );
+
+  // Name
+  textAlign(LEFT, CENTER);
+
+  fill(255);
+
+  textStyle(BOLD);
+  textSize(15);
+
+  text(
+    game[0],
+    x + 78,
+    y + 30
+  );
+
+  fill(120);
+
+  textStyle(NORMAL);
+  textSize(9);
+
+  text(
+    game[1].toUpperCase(),
+    x + 78,
+    y + 49
+  );
+
+  // Play button
+  let bx = x + 15;
+  let by = y + 94;
+  let bw = w - 30;
+
+  let hover =
+    mouseX > bx &&
+    mouseX < bx + bw &&
+    mouseY > by &&
+    mouseY < by + 30;
+
+  if (hover) {
+    fill(255);
+    stroke(255);
+  } else {
+    fill(20);
+    stroke(255, 255, 255, 35);
+  }
+
+  rect(
+    bx,
+    by,
+    bw,
+    30,
+    7
+  );
+
+  fill(
+    hover ? 0 : 255
+  );
+
+  noStroke();
+
+  textAlign(CENTER, CENTER);
+
+  textSize(10);
+
+  textStyle(BOLD);
+
+  text(
+    "PLAY",
+    bx + bw / 2,
+    by + 15
+  );
+}
+
+
+// =====================================================
+// SETTINGS PANEL
+// =====================================================
+
+function drawSettings() {
+
+  let panelW = 275;
+  let panelH = 125;
+
+  let x = width - panelW - 25;
+  let y = height - panelH - 20;
+
+  if (width < 600) {
+    x = 25;
+  }
+
+  fill(4, 4, 4, 245);
+
+  stroke(255, 255, 255, 30);
+
+  rect(
+    x,
+    y,
+    panelW,
+    panelH,
+    12
+  );
+
+  noStroke();
+
+  fill(255);
+
+  textAlign(LEFT, CENTER);
+
+  textStyle(BOLD);
+  textSize(11);
+
+  text(
+    "CUSTOMIZE VRO.GG",
+    x + 15,
+    y + 18
+  );
+
+  // Background button
+  button(
+    x + 15,
+    y + 32,
+    110,
+    30,
+    "BACKGROUND"
+  );
+
+  // Cursor button
+  button(
+    x + 140,
+    y + 32,
+    110,
+    30,
+    "CURSOR"
+  );
+
+  // Change background
+  button(
+    x + 15,
+    y + 72,
+    235,
+    30,
+    "CHANGE STYLE  •  " +
+      backgroundMode.toUpperCase()
+  );
+}
+
+
+function button(x, y, w, h, label) {
+
+  let hover =
+    mouseX > x &&
+    mouseX < x + w &&
+    mouseY > y &&
+    mouseY < y + h;
+
+  if (hover) {
+    fill(255);
+    stroke(255);
+  } else {
+    fill(15);
+    stroke(255, 255, 255, 30);
+  }
+
+  rect(
+    x,
+    y,
+    w,
+    h,
+    7
+  );
+
+  noStroke();
+
+  fill(
+    hover ? 0 : 220
+  );
+
+  textAlign(CENTER, CENTER);
+
+  textSize(8);
+
+  textStyle(BOLD);
+
+  text(
+    label,
+    x + w / 2,
+    y + h / 2
+  );
+}
+
+
+// =====================================================
+// CURSOR
+// =====================================================
+
+function drawCursor() {
+
+  imageMode(CORNER);
+
+  if (cursorImage) {
+
+    image(
+      cursorImage,
+      mouseX,
+      mouseY,
+      cursorSize,
+      cursorSize
+    );
+
+  } else {
+
+    noStroke();
+
+    fill(255);
+
+    triangle(
+      mouseX,
+      mouseY,
+      mouseX,
+      mouseY + 22,
+      mouseX + 8,
+      mouseY + 15
+    );
+
+    fill(0);
+
+    triangle(
+      mouseX + 2,
+      mouseY + 4,
+      mouseX + 2,
+      mouseY + 16,
+      mouseX + 6,
+      mouseY + 12
+    );
+  }
+}
+
+
+// =====================================================
+// MOUSE
+// =====================================================
+
+function mousePressed() {
+
+  let panelW = 275;
+  let panelH = 125;
+
+  let px = width - panelW - 25;
+  let py = height - panelH - 20;
+
+  if (width < 600) {
+    px = 25;
+  }
+
+  // Background upload
+  if (
+    mouseX > px + 15 &&
+    mouseX < px + 125 &&
+    mouseY > py + 32 &&
+    mouseY < py + 62
+  ) {
+
+    bgPicker.elt.click();
+
+    return;
+  }
+
+  // Cursor upload
+  if (
+    mouseX > px + 140 &&
+    mouseX < px + 250 &&
+    mouseY > py + 32 &&
+    mouseY < py + 62
+  ) {
+
+    cursorPicker.elt.click();
+
+    return;
+  }
+
+  // Change background
+  if (
+    mouseX > px + 15 &&
+    mouseX < px + 250 &&
+    mouseY > py + 72 &&
+    mouseY < py + 102
+  ) {
+
+    backgroundIndex++;
+
+    if (
+      backgroundIndex >=
+      backgroundNames.length
+    ) {
+      backgroundIndex = 0;
+    }
+
+    backgroundMode =
+      backgroundNames[
+        backgroundIndex
+      ];
+
+    bgImage = null;
+
+    return;
+  }
+
+  // Game buttons
+  openGameIfClicked();
+}
+
+
+// =====================================================
+// OPEN GAME
+// =====================================================
+
+function openGameIfClicked() {
+
+  let filtered = [];
+
+  for (let game of games) {
+
+    if (
+      searchText === "" ||
+      game[0]
+        .toLowerCase()
+        .includes(
+          searchText.toLowerCase()
+        ) ||
+      game[1]
+        .toLowerCase()
+        .includes(
+          searchText.toLowerCase()
+        )
+    ) {
+
+      filtered.push(game);
+    }
+  }
+
+  let columns = 3;
+
+  if (width < 850) columns = 2;
+  if (width < 550) columns = 1;
+
+  let gap = 15;
+
+  let cardWidth =
+    (width - 50 - gap * (columns - 1)) /
+    columns;
+
+  for (let i = 0; i < filtered.length; i++) {
+
+    let col = i % columns;
+    let row = floor(i / columns);
+
+    let x =
+      25 + col * (cardWidth + gap);
+
+    let y =
+      170 + row * 155;
+
+    let bx = x + 15;
+    let by = y + 94;
+    let bw = cardWidth - 30;
+
+    if (
+      mouseX > bx &&
+      mouseX < bx + bw &&
+      mouseY > by &&
+      mouseY < by + 30
+    ) {
+
+      window.open(
+        filtered[i][3],
+        "_blank"
+      );
+
+      return;
+    }
+  }
+}
+
+
+// =====================================================
+// IMAGE UPLOADS
+// =====================================================
+
+function loadBackground(file) {
+
+  if (file.type === "image") {
+
+    loadImage(
+      file.data,
+      function(img) {
+        bgImage = img;
+      }
+    );
+  }
+}
+
+
+function loadCursor(file) {
+
+  if (file.type === "image") {
+
+    loadImage(
+      file.data,
+      function(img) {
+        cursorImage = img;
+      }
+    );
+  }
+}
+
+
+// =====================================================
+// SEARCH KEYBOARD
+// =====================================================
+
+function keyTyped() {
+
+  if (
+    key !== BACKSPACE &&
+    key !== ENTER &&
+    key !== DELETE &&
+    key.length === 1
+  ) {
+
+    searchText += key;
+  }
+}
+
+
+function keyPressed() {
+
+  if (keyCode === BACKSPACE) {
+
+    searchText =
+      searchText.slice(
+        0,
+        -1
+      );
+
+    return false;
+  }
+
+  if (keyCode === ESCAPE) {
+    searchText = "";
+  }
+
+  // Cursor size
+  if (key === "+") {
+    cursorSize += 4;
+  }
+
+  if (key === "-") {
+    cursorSize =
+      max(
+        12,
+        cursorSize - 4
+      );
+  }
+
+  // Reset
+  if (key === "r" || key === "R") {
+
+    bgImage = null;
+    cursorImage = null;
+
+    backgroundIndex = 0;
+    backgroundMode = "space";
+
+    cursorSize = 32;
+  }
+}
+
+
+// =====================================================
+// RESIZE
+// =====================================================
+
+function windowResized() {
+
+  resizeCanvas(
+    windowWidth,
+    windowHeight
+  );
+}
+</script>
+</body>
+</html>
